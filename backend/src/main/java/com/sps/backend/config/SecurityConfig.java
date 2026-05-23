@@ -52,6 +52,8 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
+
+                        // Public endpoints
                         .requestMatchers(
                                 "/",
                                 "/error",
@@ -67,9 +69,21 @@ public class SecurityConfig {
                                 "/webjars/**"
                         ).permitAll()
 
+                        // Shared protected endpoints
+                        .requestMatchers("/api/auth/me").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/locations/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/slots/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/bookings/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/payments/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/support/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/notifications/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/api/ai/**").hasAnyRole("USER", "ADMIN")
+
+                        // Role-specific endpoints
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")
 
+                        // Everything else requires authentication
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
@@ -116,14 +130,32 @@ public class SecurityConfig {
         );
 
         configuration.setAllowedMethods(
-                List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                List.of(
+                        "GET",
+                        "POST",
+                        "PUT",
+                        "DELETE",
+                        "PATCH",
+                        "OPTIONS"
+                )
         );
 
         configuration.setAllowedHeaders(
-                List.of("Authorization", "Content-Type")
+                List.of(
+                        "Authorization",
+                        "Content-Type",
+                        "Accept"
+                )
+        );
+
+        configuration.setExposedHeaders(
+                List.of(
+                        "Authorization"
+                )
         );
 
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
