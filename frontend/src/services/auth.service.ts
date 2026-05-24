@@ -1,4 +1,5 @@
-import api, { API_BASE_URL } from "./api";
+import api from "./api";
+
 import type {
   AuthResponse,
   LoginRequest,
@@ -20,9 +21,9 @@ export const registerUser = async (
 };
 
 export const loginWithGoogle = () => {
-  window.location.href = `${ API_BASE_URL }/oauth2/authorization/google`;
+  alert( "Google login is not connected yet." );
 };
 
 export const loginWithGithub = () => {
-  window.location.href = `${ API_BASE_URL }/oauth2/authorization/github`;
+  alert( "GitHub login is not connected yet." );
 };

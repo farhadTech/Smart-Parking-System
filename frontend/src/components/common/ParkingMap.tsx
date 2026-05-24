@@ -8,12 +8,12 @@ import {
 import { MapPin } from "lucide-react";
 import { useTheme } from "../../features/theme/ThemeContext";
 
-import type { ParkingLocation } from "../../constants/ParkingLocations";
+import type { ParkingLocationResponse } from "../../services/location.api";
 
 type ParkingMapProps = {
-  locations: ParkingLocation[];
-  selectedLocationId?: string;
-  onSelectLocation: ( location: ParkingLocation ) => void;
+  locations: ParkingLocationResponse[];
+  selectedLocationId?: number;
+  onSelectLocation: ( location: ParkingLocationResponse ) => void;
 };
 
 const libraries: never[] = [];
@@ -29,10 +29,10 @@ const center = {
 };
 
 const getHeatColor = (
-  level: ParkingLocation[ "heatLevel" ]
+  level: ParkingLocationResponse[ "heatLevel" ]
 ) => {
-  if ( level === "High" ) return "#ef4444";
-  if ( level === "Medium" ) return "#f59e0b";
+  if ( level === "HIGH" ) return "#ef4444";
+  if ( level === "MEDIUM" ) return "#f59e0b";
   return "#10b981";
 };
 
@@ -97,6 +97,8 @@ const ParkingMap = ( {
             "left-[62%] top-[30%]",
             "left-[48%] top-[67%]",
             "left-[78%] top-[62%]",
+            "left-[30%] top-[52%]",
+            "left-[70%] top-[75%]",
           ];
 
           const selected =
@@ -115,9 +117,7 @@ const ParkingMap = ( {
             >
               <div className="flex items-center gap-2">
                 <MapPin size={ 18 } />
-                <span className="font-bold">
-                  { location.area }
-                </span>
+                <span className="font-bold">{ location.area }</span>
               </div>
 
               <p
@@ -144,28 +144,24 @@ const ParkingMap = ( {
         zoom={ 12 }
         options={ {
           disableDefaultUI: false,
-          backgroundColor: isDark
-            ? "#020617"
-            : "#f8fafc",
+          backgroundColor: isDark ? "#020617" : "#f8fafc",
           styles: isDark ? darkMapStyles : [],
         } }
       >
         { locations.map( ( location ) => {
-          const color = getHeatColor(
-            location.heatLevel
-          );
+          const color = getHeatColor( location.heatLevel );
 
           return (
             <div key={ location.id }>
               <Circle
                 center={ {
-                  lat: location.lat,
-                  lng: location.lng,
+                  lat: location.latitude,
+                  lng: location.longitude,
                 } }
                 radius={
-                  location.heatLevel === "High"
+                  location.heatLevel === "HIGH"
                     ? 900
-                    : location.heatLevel === "Medium"
+                    : location.heatLevel === "MEDIUM"
                       ? 650
                       : 450
                 }
@@ -180,13 +176,11 @@ const ParkingMap = ( {
 
               <Marker
                 position={ {
-                  lat: location.lat,
-                  lng: location.lng,
+                  lat: location.latitude,
+                  lng: location.longitude,
                 } }
                 title={ `${ location.name } - ${ location.availableSlots } available` }
-                onClick={ () =>
-                  onSelectLocation( location )
-                }
+                onClick={ () => onSelectLocation( location ) }
               />
             </div>
           );

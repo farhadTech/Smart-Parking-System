@@ -1,6 +1,7 @@
 import {
   Car,
   Eye,
+  EyeOff,
   GitBranch,
   Lock,
   Mail,
@@ -36,48 +37,20 @@ const LoginPage = () => {
   const { theme, toggleTheme } = useTheme();
   const isDark = theme === "dark";
 
-  const [ email, setEmail ] = useState(
-    "shaju@example.com"
-  );
+  const [ email, setEmail ] = useState( "shaju@example.com" );
+  const [ password, setPassword ] = useState( "password" );
 
-  const [ password, setPassword ] =
-    useState( "password" );
+  const [ showPassword, setShowPassword ] = useState( false );
 
-  const [ role, setRole ] = useState<
-    "USER" | "ADMIN"
-  >( "USER" );
-
+  const [ loading, setLoading ] = useState( false );
   const [ error, setError ] = useState( "" );
 
-  const redirectByRole = (
-    userRole: "USER" | "ADMIN"
-  ) => {
+  const redirectByRole = ( userRole: "USER" | "ADMIN" ) => {
     if ( userRole === "ADMIN" ) {
       navigate( "/admin/dashboard" );
     } else {
       navigate( "/user/dashboard" );
     }
-  };
-
-  const handleDemoLogin = () => {
-    saveAuth( {
-      token:
-        role === "ADMIN"
-          ? "demo-admin-token"
-          : "demo-user-token",
-
-      user: {
-        id: role === "ADMIN" ? 1 : 2,
-        name:
-          role === "ADMIN"
-            ? "Admin User"
-            : "Shaju Ahmed",
-        email,
-        role,
-      },
-    } );
-
-    redirectByRole( role );
   };
 
   const handleSubmit = async (
@@ -87,7 +60,14 @@ const LoginPage = () => {
 
     setError( "" );
 
+    if ( !email.trim() || !password.trim() ) {
+      setError( "Please enter email and password." );
+      return;
+    }
+
     try {
+      setLoading( true );
+
       const response = await loginUser( {
         email,
         password,
@@ -97,24 +77,20 @@ const LoginPage = () => {
 
       redirectByRole( response.user.role );
     } catch {
-      setError(
-        "Backend is not connected yet. Use Demo Login for now."
-      );
+      setError( "Login failed. Please check your email and password." );
+    } finally {
+      setLoading( false );
     }
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10 dark:bg-slate-950 sm:px-6">
       <div className="grid w-full max-w-6xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-800 dark:bg-slate-900 md:grid-cols-2">
-        {/* LEFT */ }
         <div className="p-6 sm:p-8 md:p-12">
           <div className="mb-12 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-500">
-                <Car
-                  size={ 20 }
-                  className="text-white"
-                />
+                <Car size={ 20 } className="text-white" />
               </div>
 
               <h1 className="text-lg font-bold leading-5 text-blue-600 dark:text-blue-400">
@@ -129,11 +105,7 @@ const LoginPage = () => {
               onClick={ toggleTheme }
               className="cursor-pointer rounded-full bg-slate-100 p-3 text-yellow-500 transition-all duration-300 hover:scale-105 hover:bg-slate-200 dark:bg-slate-800 dark:text-yellow-400 dark:hover:bg-slate-700"
             >
-              { isDark ? (
-                <Sun size={ 18 } />
-              ) : (
-                <Moon size={ 18 } />
-              ) }
+              { isDark ? <Sun size={ 18 } /> : <Moon size={ 18 } /> }
             </button>
           </div>
 
@@ -155,7 +127,6 @@ const LoginPage = () => {
             onSubmit={ handleSubmit }
             className="mt-8 space-y-5"
           >
-            {/* EMAIL */ }
             <div>
               <label className="mb-2 block text-sm text-slate-700 dark:text-blue-300">
                 Email
@@ -170,16 +141,14 @@ const LoginPage = () => {
                 <input
                   type="email"
                   value={ email }
-                  onChange={ ( event ) =>
-                    setEmail( event.target.value )
-                  }
+                  onChange={ ( event ) => setEmail( event.target.value ) }
                   className="w-full bg-transparent text-slate-900 outline-none placeholder:text-slate-500 dark:text-white"
                   placeholder="Enter your email"
+                  autoComplete="email"
                 />
               </div>
             </div>
 
-            {/* PASSWORD */ }
             <div>
               <div className="mb-2 flex items-center justify-between">
                 <label className="text-sm text-slate-700 dark:text-blue-300">
@@ -201,68 +170,38 @@ const LoginPage = () => {
                 />
 
                 <input
-                  type="password"
+                  type={ showPassword ? "text" : "password" }
                   value={ password }
-                  onChange={ ( event ) =>
-                    setPassword( event.target.value )
-                  }
+                  onChange={ ( event ) => setPassword( event.target.value ) }
                   className="w-full bg-transparent text-slate-900 outline-none placeholder:text-slate-500 dark:text-white"
                   placeholder="Password"
+                  autoComplete="current-password"
                 />
 
-                <Eye
-                  size={ 18 }
-                  className="text-blue-500 dark:text-blue-300"
-                />
+                <button
+                  type="button"
+                  onClick={ () => setShowPassword( ( prev ) => !prev ) }
+                  className="cursor-pointer text-blue-500 transition hover:scale-110 dark:text-blue-300"
+                  aria-label={ showPassword ? "Hide password" : "Show password" }
+                >
+                  { showPassword ? (
+                    <EyeOff size={ 18 } />
+                  ) : (
+                    <Eye size={ 18 } />
+                  ) }
+                </button>
               </div>
             </div>
 
-            {/* ROLE */ }
-            <div>
-              <label className="mb-2 block text-sm text-slate-700 dark:text-blue-300">
-                Login As
-              </label>
-
-              <select
-                value={ role }
-                onChange={ ( event ) =>
-                  setRole(
-                    event.target.value as
-                    | "USER"
-                    | "ADMIN"
-                  )
-                }
-                className="w-full rounded-2xl border border-slate-300 bg-slate-100 px-4 py-3 text-slate-900 outline-none dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-              >
-                <option value="USER">
-                  User
-                </option>
-
-                <option value="ADMIN">
-                  Admin
-                </option>
-              </select>
-            </div>
-
-            {/* LOGIN */ }
             <button
               type="submit"
-              className="w-full cursor-pointer rounded-2xl bg-blue-500 py-3 font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-600 active:scale-[0.98]"
+              disabled={ loading }
+              className="w-full cursor-pointer rounded-2xl bg-blue-500 py-3 font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              Sign In
-            </button>
-
-            {/* DEMO */ }
-            <button
-              type="button"
-              onClick={ handleDemoLogin }
-              className="w-full cursor-pointer rounded-2xl border border-slate-300 bg-white py-3 font-bold text-slate-900 transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500 hover:text-blue-600 active:scale-[0.98] dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:hover:bg-slate-700"
-            >
-              Demo Login
+              { loading ? "Signing In..." : "Sign In" }
             </button>
           </form>
 
-          {/* DIVIDER */ }
           <div className="my-8 flex items-center gap-4">
             <div className="h-px flex-1 bg-slate-300 dark:bg-slate-800" />
 
@@ -273,16 +212,13 @@ const LoginPage = () => {
             <div className="h-px flex-1 bg-slate-300 dark:bg-slate-800" />
           </div>
 
-          {/* SOCIAL */ }
           <div className="grid gap-3 sm:grid-cols-2">
             <button
               type="button"
               onClick={ loginWithGoogle }
               className="flex cursor-pointer items-center justify-center gap-3 rounded-2xl border border-slate-300 py-3 font-bold text-slate-900 transition-all duration-300 hover:-translate-y-0.5 hover:bg-slate-100 dark:border-slate-700 dark:text-white dark:hover:bg-slate-800"
             >
-              <span className="font-bold text-red-400">
-                G
-              </span>
+              <span className="font-bold text-red-400">G</span>
               Google
             </button>
 
@@ -307,7 +243,6 @@ const LoginPage = () => {
           </p>
         </div>
 
-        {/* RIGHT */ }
         <div className="relative hidden bg-gradient-to-br from-blue-600 to-indigo-800 p-12 md:block">
           <span className="rounded-full bg-white/15 px-5 py-2 text-sm font-bold text-white">
             Smart Parking Platform
@@ -318,11 +253,8 @@ const LoginPage = () => {
           </h2>
 
           <p className="mt-6 max-w-md text-lg text-blue-100">
-            Sign in to reserve slots instantly,
-            monitor parking spaces, and
-            experience modern parking
-            management with real-time
-            technology.
+            Sign in to reserve slots instantly, monitor parking spaces, and
+            experience modern parking management with real-time technology.
           </p>
 
           <div className="absolute bottom-36 left-12 right-12 grid grid-cols-3 gap-5">

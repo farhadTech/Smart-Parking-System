@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Bell, Search, Sun, Moon, X } from "lucide-react";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../../features/auth/AuthContext";
 import { useTheme } from "../../features/theme/ThemeContext";
@@ -10,6 +11,8 @@ type TopbarProps = {
 };
 
 const Topbar = ( { title }: TopbarProps ) => {
+  const navigate = useNavigate();
+
   const { user } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
@@ -39,6 +42,14 @@ const Topbar = ( { title }: TopbarProps ) => {
   const handleThemeToggle = () => {
     toggleTheme();
     toast.success( isDark ? "Light mode enabled" : "Dark mode enabled" );
+  };
+
+  const goToProfile = () => {
+    if ( user?.role === "ADMIN" ) {
+      navigate( "/admin/profile" );
+    } else {
+      navigate( "/user/profile" );
+    }
   };
 
   return (
@@ -131,7 +142,12 @@ const Topbar = ( { title }: TopbarProps ) => {
           ) }
         </div>
 
-        <button className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-cyan-500 font-bold text-white transition-all duration-300 hover:scale-105">
+        <button
+          type="button"
+          onClick={ goToProfile }
+          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-cyan-500 font-bold text-white transition-all duration-300 hover:scale-105 hover:bg-cyan-600"
+          title="Open profile"
+        >
           { user?.name?.charAt( 0 ).toUpperCase() || "U" }
         </button>
       </div>

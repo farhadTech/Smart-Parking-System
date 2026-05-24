@@ -1,10 +1,7 @@
 import axios from "axios";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
-
 const api = axios.create( {
-  baseURL: `${ API_BASE_URL }/api`,
+  baseURL: "http://localhost:8080/api",
   headers: {
     "Content-Type": "application/json",
   },
@@ -13,12 +10,19 @@ const api = axios.create( {
 api.interceptors.request.use( ( config ) => {
   const token = localStorage.getItem( "smart_parking_token" );
 
-  if ( token ) {
+  const isValidJwt =
+    token &&
+    token !== "null" &&
+    token !== "undefined" &&
+    token.split( "." ).length === 3;
+
+  if ( isValidJwt ) {
     config.headers.Authorization = `Bearer ${ token }`;
+  } else {
+    delete config.headers.Authorization;
   }
 
   return config;
 } );
 
 export default api;
-export { API_BASE_URL };
